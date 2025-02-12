@@ -28,7 +28,7 @@ target_include_directories(tgcrypto PRIVATE
 if(WIN32)
     set_target_properties(tgcrypto PROPERTIES
         PREFIX ""
-        SUFFIX ".pyd"  # Use .pyd instead of .dll for Python compatibility
+        SUFFIX ".pyd"  # Use .pyd for Python
     )
     if(MSVC)
         target_compile_options(tgcrypto PRIVATE /W3 /O2)
@@ -39,8 +39,10 @@ else()
     set_target_properties(tgcrypto PROPERTIES
         PREFIX ""  # Remove 'lib' prefix
         SUFFIX ".so"
+        C_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN ON
     )
-    target_compile_options(tgcrypto PRIVATE -Wall -O3 -fPIC)
+    target_compile_options(tgcrypto PRIVATE -Wall -O3 -fPIC -fvisibility=hidden)
 endif()
 
 # Install rules
