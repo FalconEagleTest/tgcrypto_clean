@@ -92,11 +92,13 @@ jobs:
             -DANDROID_PLATFORM=android-21 \
             -DCMAKE_BUILD_TYPE=Release
           cmake --build .
+          # Make a copy with ABI in name for release
+          cp tgcrypto.so tgcrypto-${{ matrix.abi }}.so
           
       - name: Release Android
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build-android/${{ matrix.abi }}/tgcrypto.so"
+          artifacts: "build-android/${{ matrix.abi }}/tgcrypto-${{ matrix.abi }}.so"
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ needs.prepare-release.outputs.release_tag }}
