@@ -24,32 +24,26 @@ target_include_directories(tgcrypto PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# Set output names based on platform
+# Platform-specific settings
 if(WIN32)
     set_target_properties(tgcrypto PROPERTIES
         PREFIX ""
-        OUTPUT_NAME "tgcrypto"
-        SUFFIX ".dll"
+        SUFFIX ".pyd"  # Use .pyd instead of .dll for Python compatibility
     )
     if(MSVC)
-        # Set MSVC-specific flags
         target_compile_options(tgcrypto PRIVATE /W3 /O2)
     else()
-        # Set MinGW flags
         target_compile_options(tgcrypto PRIVATE -Wall -O3)
     endif()
 else()
     set_target_properties(tgcrypto PROPERTIES
-        PREFIX "lib"
-        OUTPUT_NAME "tgcrypto"
+        PREFIX ""  # Remove 'lib' prefix
         SUFFIX ".so"
     )
-    # Set GCC/Clang flags for Linux/macOS
     target_compile_options(tgcrypto PRIVATE -Wall -O3 -fPIC)
 endif()
 
 # Install rules
 install(TARGETS tgcrypto
     RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-)
+    LIBRARY DESTINATION lib)
