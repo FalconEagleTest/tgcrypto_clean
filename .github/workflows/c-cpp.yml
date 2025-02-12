@@ -44,7 +44,7 @@ jobs:
       - name: Release Windows
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/Release/tgcrypto.dll"
+          artifacts: "build/Release/tgcrypto.pyd"
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ needs.prepare-release.outputs.release_tag }}
@@ -96,7 +96,7 @@ jobs:
       - name: Release Android
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build-android/${{ matrix.abi }}/libtgcrypto.so"
+          artifacts: "build-android/${{ matrix.abi }}/tgcrypto.so"
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ needs.prepare-release.outputs.release_tag }}
