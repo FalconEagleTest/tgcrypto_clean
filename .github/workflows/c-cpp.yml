@@ -1,0 +1,94 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: true
+        type: string
+      release_name:
+        description: 'Release name'
+        required: true
+        type: string
+      release_notes:
+        description: 'Release notes'
+        required: false
+        type: string
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        
+      - name: Build Windows
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build . --config Release
+          
+      - name: Release Windows
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/Release/tgcrypto.dll"
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.event.inputs.release_tag }}
+          name: ${{ github.event.inputs.release_name }}
+          body: ${{ github.event.inputs.release_notes }}
+          
+  build-android:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        abi: [arm64-v8a, armeabi-v7a]
+        include:
+          - abi: arm64-v8a
+            android_abi: arm64-v8a
+            android_arch: aarch64
+          - abi: armeabi-v7a
+            android_abi: armeabi-v7a
+            android_arch: armv7a
+            
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c
+          
+      - name: Build Android
+        env:
+          ANDROID_ABI: ${{ matrix.android_abi }}
+          ANDROID_ARCH: ${{ matrix.android_arch }}
+        run: |
+          mkdir -p build-android/${{ matrix.abi }}
+          cd build-android/${{ matrix.abi }}
+          cmake ../.. \
+            -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.android_abi }} \
+            -DANDROID_PLATFORM=android-21 \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build .
+          
+      - name: Release Android
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build-android/${{ matrix.abi }}/libtgcrypto.so"
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.event.inputs.release_tag }}
+          name: ${{ github.event.inputs.release_name }}
+          body: ${{ github.event.inputs.release_notes }}
